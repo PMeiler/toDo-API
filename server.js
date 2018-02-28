@@ -29,7 +29,17 @@ app.get("/",function(req,res){
 
 app.get("/todo",function(req,res){
 	res.json(todos);
-})
+});
+
+app.get("/todo/:id",function(req,res){
+	var gId = req.params.id;
+	todos.forEach(function(element){
+		if(gId == element.id){
+			found = true;
+			res.send("You have to do: " + element.description + " !");
+		}
+	})
+});
 
 
 app.use(express.static(__dirname+"/public"));
