@@ -33,12 +33,14 @@ app.get("/todo",function(req,res){
 
 app.get("/todo/:id",function(req,res){
 	var gId = req.params.id;
+	var found = false
 	todos.forEach(function(element){
 		if(gId == element.id){
 			found = true;
 			res.send("You have to do: " + element.description + " !");
 		}
 	})
+	if(!found){res.status(404).send;}
 });
 
 
