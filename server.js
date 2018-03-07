@@ -41,7 +41,24 @@ app.get("/",function(req,res){
 
 //Auflistung aller ToDo Elemente
 app.get("/todo",function(req,res){
-	res.json(todos);
+	var qry = req.query;
+	var filtered = todos;
+	console.log(qry.q);
+	if (qry.hasOwnProperty("done") && qry.done === "true"){	
+		filtered = _.where(todos,{done:true})
+	}else if(qry.hasOwnProperty("done") && qry.done === "false"){
+		filtered = _.where(todos,{done:false});
+	}
+
+	var temp = filtered;
+	if(qry.hasOwnProperty("q")){
+		
+		filtered = _.filter(temp,function(tmp){
+				return tmp.description.indexOf(qry.q) > -1 
+				});
+	}
+	
+	res.json(filtered);	
 });
 
 
@@ -92,8 +109,35 @@ app.delete("/todo/:id",function(req,res){
 		todos = _.without(todos,found);
 		res.json(found);
 	}
-	
 });
+
+//Updating
+app.put("/todo/:id",function(req,res){
+	var gId = parseInt(req.params.id,10);
+	var found = _.findWhere(todos,{id:gId});
+	var body = _.pick(req.body,"description","done");
+	validItem = {};
+
+	if(!found){
+		return res.status(404).send();
+	}
+
+	if(body.hasOwnProperty("done") && _.isBoolean(body.done)){
+		validItem.done = body.done;
+	}else if(body.hasOwnProperty("done")){
+		res.status(400).send();
+	}else if(body.hasOwnProperty("description") && _.isString(body.description) && body.description.trim().length >0 ){
+		validItem.description = body.description;
+	}else if(body.hasOwnProperty("description")){
+		res.status(400).send();
+	}else{
+		res.status(404).send();
+	}
+
+	_.extend(found,validItem);
+	res.send("Item was updated!");
+
+});	
 
 
 
