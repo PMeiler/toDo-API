@@ -43,7 +43,8 @@ app.get("/",function(req,res){
 app.get("/todo",function(req,res){
 	var qry = req.query;
 	var filtered = todos;
-	console.log(qry.q);
+	console.log(qry);
+	
 	if (qry.hasOwnProperty("done") && qry.done === "true"){	
 		filtered = _.where(todos,{done:true})
 	}else if(qry.hasOwnProperty("done") && qry.done === "false"){
