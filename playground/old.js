@@ -34,11 +34,7 @@ app.use(middleware.logger);
 //Auflistung aller ToDo Elemente
 app.get("/todo",function(req,res){
 	var qry = req.query;
-	//var filtered = todos;
-
-	console.log(qry);
-	res.send(typeof qry);
-
+	var filtered = todos;
 	
 	/*
 	if (qry.hasOwnProperty("done") && qry.done === "true"){	
@@ -56,7 +52,7 @@ app.get("/todo",function(req,res){
 	}
 	
 	res.json(filtered);
-	*/
+	*/	
 });
 
 
@@ -64,13 +60,7 @@ app.get("/todo",function(req,res){
 //Ausgabe eines bestimmten ToDo Elementes
 app.get("/todo/:id",function(req,res){
 	var gId = parseInt(req.params.id,10);
-//	var found = _.findWhere(todos,{id:gId});
-	
-	db.todo.findById(gId).then(function(todo){
-		res.json(todo);
-	},function(err){
-		res.status(400).json(err)
-	});
+	var found = _.findWhere(todos,{id:gId});
 
 	/*
 	if(found){
@@ -86,22 +76,51 @@ app.get("/todo/:id",function(req,res){
 app.post("/todo/add", function(req,res){
 	var body = req.body;
 
-	db.todo.create(body).then(function(todo){
-		res.send("Success!");
-	},function(error){
-		res.status(400).json(error);
+	if(!_.isBoolean(body.done) || !_.isString(body.description) || body.description.trim().length === 0){
+		return res.status(400).send();
+	}	
+
+	body.description = body.description.trim();
+
+	
+	db.todo.create({
+		description: body.description,
+		done: body.done
+	}).then(function(todo){
+		console.log("Creation succeeded!");
+		console.log(todo.toJSON());
+		res.send(todo.toJSON());
+	}).catch(function(error){
+		console.log(error);
+		res.status(400).send();
 	});
 
+
+
+
+
+	/*
+	if(!_.isBoolean(body.done) || !_.isString(body.description) || body.description.trim().length === 0){
+		return res.status(400).send();
+	}
+	body.description = body.description.trim();
+
+	addToArray(_.pick(body,"description","done"));
+
+
+	function addToArray(element){
+			element.id = todos.length + 1;
+			todos.push(element);
+			res.send("Done");
+		}
+	*/
 });
 
 //Lösche ein Element der ToDo Liste
 app.delete("/todo/:id",function(req,res){
-	
-	var gId = parseInt(req.params.id,10);
-	//var found = _.findWhere(todos,{id:gId});
-
 	/*
-	
+	var gId = parseInt(req.params.id,10);
+	var found = _.findWhere(todos,{id:gId});
 	
 	if(!found){
 		res.status(404).send();	
@@ -115,20 +134,9 @@ app.delete("/todo/:id",function(req,res){
 //Updating
 app.put("/todo/:id",function(req,res){
 	var gId = parseInt(req.params.id,10);
+	var found = _.findWhere(todos,{id:gId});
 	var body = _.pick(req.body,"description","done");
 	validItem = {};
-	
-	db.todo.update(body,{
-		where:{
-			id:gId
-		}}).then(function(todo){
-			res.json(db.todo.findById(gId).toJSON);
-		},function(err){res.status(400).json(err)})
-
-
-
-	//var found = _.findWhere(todos,{id:gId});
-
 	/*
 	if(!found){
 		return res.status(404).send();

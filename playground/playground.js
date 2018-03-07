@@ -24,44 +24,15 @@ const Todo = sequelize.define("todo",{
 sequelize.sync().then(function(){
 	console.log("Everything is synced");
 
-
-
-	Todo.update({
-		description: "Walk the cat"
-	}, {where: {
-		id: 1
-	}}).then(function(){
-		Todo.findById(1).then(function(todo){
-			console.log(todo.toJSON());
-		})
-	},function(err){
-		console.log(err);
-	});
-
-/*
-	Todo.destroy({
-		where: {
-			id: 6
-		}
-	}).then(function(todo){
-		console.log("success!");
-	},function(err){
-		console.log(err);
-	});
-
-
-*/
-/*
 	Todo.create({
-		description: "I'm good!",
-		done: true
+		description: "I'm good!"
 	}).then(function(todo){
 		console.log("Finished!");
-		console.log(todo.toJSON());
+		console.log(todo);
 	}).catch(function(e){
 		console.log(e);
 	});
-*/
+
 
 /*	Todo.findById(20).then(function(todo){
 		if(todo){
