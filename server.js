@@ -6,25 +6,7 @@ const bodyParser = require("body-parser");
 const _ = require("underscore");
 const db = require("./db.js");
 
-/*
-var todos = [
-	{
-		id: 1,
-		description: "Water your plants!",
-		done: false
-	},
-	{
-		id: 2,
-		description: "Go pet your Animal",
-		done: false
-	},
-	{
-		id: 3,
-		description: "Do something for your Thesis!",
-		done: false	
-	}
-]
-*/
+
 
 app.use(bodyParser.json());
 app.use(middleware.logger);
@@ -34,11 +16,28 @@ app.use(middleware.logger);
 //Auflistung aller ToDo Elemente
 app.get("/todo",function(req,res){
 	var qry = req.query;
-	//var filtered = todos;
+	var where = {};
 
-	console.log(qry);
-	res.send(typeof qry);
+	if (qry.hasOwnProperty("done") && qry.done === "true"){	
+		where.done = true;
+	}else if(qry.hasOwnProperty("done") && qry.done === "false"){
+		where.done = false;
+	}
 
+	
+	if(qry.hasOwnProperty("q")){
+		where.description = {
+			$like: "%" + qry.q + "%"
+		}
+	}
+
+	db.todo.findAll({where: where}).then(function(todos){
+		res.send(todos);
+	},function(err){res.status(500).send();});
+
+		//var filtered = todos;
+
+	
 	
 	/*
 	if (qry.hasOwnProperty("done") && qry.done === "true"){	
@@ -67,18 +66,15 @@ app.get("/todo/:id",function(req,res){
 //	var found = _.findWhere(todos,{id:gId});
 	
 	db.todo.findById(gId).then(function(todo){
-		res.json(todo);
+		if(!!todo){
+			res.json(todo);}
+		else{
+			res.status(404).send();
+		}
 	},function(err){
-		res.status(400).json(err)
+		res.status(500).json(err);
 	});
 
-	/*
-	if(found){
-		res.json(found);
-	}else{
-		res.status(404).send();
-	}
-	*/
 });
 
 
