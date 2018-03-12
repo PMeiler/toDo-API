@@ -116,17 +116,34 @@ app.put("/todo/:id", function(req, res) {
 
 });
 
+
+//Registration
 app.post("/user", function(req, res) {
 	var body = _.pick(req.body, "email", "password");
 
 	db.user.create(body).then(function(user) {
-		res.send("User:" + body.email + " successfully created!")
+		res.json(user.toPublicJSON());
+		//res.send("User:" + body.email + " successfully created!")
 	}, function(error) {
-		res.status(500).json(error)
+		res.status(400).json(error)
 	});
 });
 
-db.sequelize.sync().then(function() {
+
+//UserName Login
+app.post("/user/login", function(req, res) {
+	var body = _.pick(req.body, "email", "password")
+
+	db.user.authenticate(body).then(function(user) {
+		res.json(user.toPublicJSON());
+	}, function(err) {
+		res.status(401).send();
+	});
+
+})
+
+
+db.sequelize.sync({force:true}).then(function() {
 	app.listen(PORT, function() {
 		console.log("Server listens on Port: " + PORT);
 	});

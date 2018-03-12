@@ -1,19 +1,19 @@
 const Sequelize = require("sequelize");
 const sequelize = new Sequelize(undefined, undefined, undefined, {
-	"dialect":"sqlite",
-	"storage":"basic-sqlite-database.sqlite"
-});	
+	"dialect": "sqlite",
+	"storage": "basic-sqlite-database.sqlite"
+});
 
 
-const Todo = sequelize.define("todo",{
+const Todo = sequelize.define("todo", {
 	description: {
 		type: Sequelize.STRING,
 		allowNull: false,
-		validate:{
-			len: [1,250]
-		} 
+		validate: {
+			len: [1, 250]
+		}
 	},
-	done:{
+	done: {
 		type: Sequelize.BOOLEAN,
 		defaultValue: false
 	}
@@ -21,22 +21,24 @@ const Todo = sequelize.define("todo",{
 
 
 
-sequelize.sync().then(function(){
+sequelize.sync().then(function() {
 	console.log("Everything is synced");
 
 
 
-	Todo.update({
+	Todo.update(
 		description: "Walk the cat"
-	}, {where: {
-		id: 1
-	}}).then(function(){
-		Todo.findById(1).then(function(todo){
-			console.log(todo.toJSON());
-		})
-	},function(err){
-		console.log(err);
-	});
+	}, {
+		where: {
+			id: 1
+		}
+	}).then(function() {
+	Todo.findById(1).then(function(todo) {
+		console.log(todo.toJSON());
+	})
+}, function(err) {
+	console.log(err);
+});
 
 /*
 	Todo.destroy({
@@ -77,8 +79,6 @@ sequelize.sync().then(function(){
 
 
 
-
-
 /*
 	Todo.create({
 		description:"Walk the dog!",
@@ -104,7 +104,4 @@ sequelize.sync().then(function(){
 
 */
 
-	});
-
-
-
+});
