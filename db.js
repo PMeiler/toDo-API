@@ -2,6 +2,8 @@ var env = process.env.NODE_ENV || "development"
 const bcrypt = require("bcrypt");
 const Sequelize = require("sequelize");
 const _ = require("underscore");
+const cryptojs = require("crypto-js");
+const jwt = require("jsonwebtoken");
 var sequelize;
 
 if (env === "production") {
@@ -40,12 +42,58 @@ db.user.authenticate = function(body) {
 			reject();
 		})
 	})
-}
+};
+
+db.user.findUserByToken = function(token) {
+	return new Promise(function(resolve, reject) {
+		try {
+			var tData = jwt.verify(token, "qwert");
+			console.log(tData);
+			var bytes = cryptojs.AES.decrypt(tData.token, "abcde123!");
+			var tokenData = JSON.parse(bytes.toString(cryptojs.enc.Utf8));
+			db.user.findById(tokenData.id).then(function(user) {
+				if (user) {
+					resolve(user);
+				} else {
+					reject();
+				}
+			}, function() {
+				reject();
+			})
+		} catch (e) {
+			console.log(e);
+			reject();
+		}
+	})
+};
 
 db.user.prototype.toPublicJSON = function() {
 	var json = this.toJSON();
 	return _.pick(json, "id", "email", "createdAt", "updatedAt");
 };
+db.user.prototype.generateToken = function(type) {
+	if (!_.isString(type)) {
+		return undefined;
+	}
+
+	try {
+		var stringData = JSON.stringify({
+			id: this.get("id"),
+			type: type
+		});
+		var encryptedData = cryptojs.AES.encrypt(stringData, "abcde123!").toString();
+		var token = jwt.sign({
+				token: encryptedData
+			},
+			"qwert");
+		return token;
+	} catch (e) {
+		console.log(e);
+		return undefined;
+
+	}
+};
+
 
 
 db.sequelize = sequelize;

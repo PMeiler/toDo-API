@@ -5,7 +5,6 @@ module.exports = function(sequelize, DataType) {
 	return sequelize.define("user", {
 			email: {
 				type: DataType.STRING,
-				allowNull: false,
 				unique: true,
 				validate: {
 					len: [1, 250],
@@ -25,7 +24,7 @@ module.exports = function(sequelize, DataType) {
 					len: [7, 120]
 				},
 				set: function(value) {
-					var salt = bcrypt.genSaltSync(15);
+					var salt = bcrypt.genSaltSync(10);
 					var passwordHash = bcrypt.hashSync(value, salt);
 
 					this.setDataValue("password", value);

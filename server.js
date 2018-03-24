@@ -1,16 +1,15 @@
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
-const middleware = require("./middleware.js");
 const bodyParser = require("body-parser");
 const _ = require("underscore");
 const db = require("./db.js");
+const middleware = require("./middleware.js")(db);
 
 app.use(bodyParser.json());
-app.use(middleware.logger);
 
 //Auflistung aller ToDo Elemente
-app.get("/todo", function(req, res) {
+app.get("/todo", middleware.requireAuthentication, function(req, res) {
 	var qry = req.query;
 	var where = {};
 
@@ -39,7 +38,7 @@ app.get("/todo", function(req, res) {
 });
 
 //Ausgabe eines bestimmten ToDo Elementes
-app.get("/todo/:id", function(req, res) {
+app.get("/todo/:id", middleware.requireAuthentication, function(req, res) {
 	var gId = parseInt(req.params.id, 10);
 	//	var found = _.findWhere(todos,{id:gId});
 
@@ -56,7 +55,7 @@ app.get("/todo/:id", function(req, res) {
 });
 
 //Füge ein neues Element der ToDo Liste bei!
-app.post("/todo/add", function(req, res) {
+app.post("/todo/add", middleware.requireAuthentication, function(req, res) {
 	var body = req.body;
 
 	db.todo.create(body).then(function(todo) {
@@ -68,7 +67,7 @@ app.post("/todo/add", function(req, res) {
 });
 
 //Lösche ein Element der ToDo Liste
-app.delete("/todo/:id", function(req, res) {
+app.delete("/todo/:id", middleware.requireAuthentication, function(req, res) {
 
 	var gId = parseInt(req.params.id, 10);
 	//var found = _.findWhere(todos,{id:gId});
@@ -92,7 +91,7 @@ app.delete("/todo/:id", function(req, res) {
 });
 
 //Updating
-app.put("/todo/:id", function(req, res) {
+app.put("/todo/:id", middleware.requireAuthentication, function(req, res) {
 	var gId = parseInt(req.params.id, 10);
 	var body = _.pick(req.body, "description", "done");
 	var attributes = {};
@@ -132,10 +131,11 @@ app.post("/user", function(req, res) {
 
 //UserName Login
 app.post("/user/login", function(req, res) {
-	var body = _.pick(req.body, "email", "password")
-
+	var body = _.pick(req.body, "email", "password");
 	db.user.authenticate(body).then(function(user) {
-		res.json(user.toPublicJSON());
+		var token = user.generateToken("authentication");
+		console.log(token);
+		res.header("Auth", token).json(user.toPublicJSON());
 	}, function(err) {
 		res.status(401).send();
 	});
@@ -143,7 +143,9 @@ app.post("/user/login", function(req, res) {
 })
 
 
-db.sequelize.sync({force:true}).then(function() {
+db.sequelize.sync({
+	force: true
+}).then(function() {
 	app.listen(PORT, function() {
 		console.log("Server listens on Port: " + PORT);
 	});
