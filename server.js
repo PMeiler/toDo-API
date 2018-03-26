@@ -42,7 +42,12 @@ app.get("/todo/:id", middleware.requireAuthentication, function(req, res) {
 	var gId = parseInt(req.params.id, 10);
 	//	var found = _.findWhere(todos,{id:gId});
 
-	db.todo.findById(gId).then(function(todo) {
+	db.todo.findOne({
+		where: {
+			id: gId,
+			userId: req.user.id
+		}
+	}).then(function(todo) {
 		if (!!todo) {
 			res.json(todo);
 		} else {
