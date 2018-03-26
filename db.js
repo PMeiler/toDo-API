@@ -94,6 +94,8 @@ db.user.prototype.generateToken = function(type) {
 	}
 };
 
+db.user.hasMany(db.todo);
+db.todo.belongsTo(db.user);
 
 
 db.sequelize = sequelize;

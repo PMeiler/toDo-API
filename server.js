@@ -11,15 +11,15 @@ app.use(bodyParser.json());
 //Auflistung aller ToDo Elemente
 app.get("/todo", middleware.requireAuthentication, function(req, res) {
 	var qry = req.query;
-	var where = {};
+	var where = {
+		userId: req.user.id
+	};
 
 	if (qry.hasOwnProperty("done") && qry.done === "true") {
 		where.done = true;
 	} else if (qry.hasOwnProperty("done") && qry.done === "false") {
 		where.done = false;
 	}
-
-
 	if (qry.hasOwnProperty("q")) {
 		where.description = {
 			$like: "%" + qry.q + "%"
@@ -57,8 +57,10 @@ app.get("/todo/:id", middleware.requireAuthentication, function(req, res) {
 //Füge ein neues Element der ToDo Liste bei!
 app.post("/todo/add", middleware.requireAuthentication, function(req, res) {
 	var body = req.body;
+	console.log(req.user);
 
 	db.todo.create(body).then(function(todo) {
+		todo.setUser(req.user.id);
 		res.json(todo.toJSON());
 	}, function(error) {
 		res.status(400).json(error);
@@ -74,7 +76,8 @@ app.delete("/todo/:id", middleware.requireAuthentication, function(req, res) {
 
 	db.todo.destroy({
 		where: {
-			id: gId
+			id: gId,
+			userId: req.user.id
 		}
 	}).then(function(todo) {
 		if (todo === 0) {
@@ -98,7 +101,8 @@ app.put("/todo/:id", middleware.requireAuthentication, function(req, res) {
 
 	db.todo.update(body, {
 		where: {
-			id: gId
+			id: gId,
+			userId: req.user.id
 		}
 	}).then(function(todo) {
 		console.log(todo);
